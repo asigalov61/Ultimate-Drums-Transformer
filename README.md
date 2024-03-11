@@ -5,5 +5,13 @@
 
 ***
 
+## Similar previous projects
+
+### [Lars Ulrich Transformer](https://github.com/asigalov61/Lars-Ulrich-Transformer)
+### [Piano Drummer](https://github.com/asigalov61/Piano-Drummer)
+### [Lars Ulrich Challenge](https://github.com/asigalov61/Lars-Ulrich-Challenge)
+
+***
+
 ### Project Los Angeles
 ### Tegridy Code 2024
