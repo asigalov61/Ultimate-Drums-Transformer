@@ -289,7 +289,7 @@ for i in range(number_of_batches_to_generate):
 
           if 384 <= ss < 393:
 
-              vel = (((ss-384) % 8)+1) * 15
+              vel = ((ss-384)+1) * 15
 
               song_f.append(['note', dtime, dur, 9, pitch, vel, 128])
 
@@ -538,7 +538,7 @@ if len(output) != 0:
 
         if 384 <= ss < 393:
 
-            vel = (((ss-384) % 8)+1) * 15
+            vel = ((ss-384)+1) * 15
 
             song_f.append(['note', dtime, dur, 9, pitch, vel, 128])
 
