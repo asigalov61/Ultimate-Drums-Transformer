@@ -1,4 +1,4 @@
-# Ultimate Transformer Small No Velocity Pre-Trained Model
+# Ultimate Drums Transformer Small Pre-Trained Model (no velocity)
 
 ***
 
