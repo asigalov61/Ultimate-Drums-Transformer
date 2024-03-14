@@ -2,7 +2,7 @@
 
 ***
 
-Cehck out [Utimate Drums Transformer Hugging Face Space](https://huggingface.co/spaces/asigalov61/Ultimate-Drums-Transformer) which uses this app
+## Check out [Utimate Drums Transformer Hugging Face Space](https://huggingface.co/spaces/asigalov61/Ultimate-Drums-Transformer) which uses this app
 
 ***
 
