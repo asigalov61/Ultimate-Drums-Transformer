@@ -179,7 +179,7 @@ def TMIDIX_MIDI_Processor(midi_file):
               d.sort(key=lambda x: x[4])
               chans = sorted(set([x[3] for x in d]))
 
-              if (9 in chans) and (len(chans) > 1):
+              if len(chans) > 1:
 
                 time = d[0][1] - npe[0][1]
 
@@ -206,7 +206,6 @@ def TMIDIX_MIDI_Processor(midi_file):
 
                 dtime = max(0, min(127, int(time)))
 
-
                 ptc = max(1, min(127, e[4]))
 
                 cha = e[3]
@@ -226,7 +225,7 @@ def TMIDIX_MIDI_Processor(midi_file):
                     else:
                       dt_score_notes.extend([ptc+256])
 
-                pe = e
+                  pe = e
 
               if len(dt_score_notes) > 8192:
                 break
