@@ -284,7 +284,10 @@ for i in range(number_of_batches_to_generate):
 
               pitch = (ss-256)
 
-              song_f.append(['note', dtime, dur, 9, pitch, vels[pitch % 2], 128 ])
+              if dtime == time:
+                song_f.append(['note', time, dur, 9, pitch, vels[pitch % 2], 128 ])
+              else:
+                song_f.append(['note', dtime, dur, 9, pitch, vels[pitch % 2], 128 ])
 
       data = TMIDIX.Tegridy_ms_SONG_to_MIDI_Converter(song_f,
                                                       output_signature = 'Ultimate Drums Transformer',
@@ -531,7 +534,10 @@ if len(output) != 0:
 
             pitch = (ss-256)
 
-            song_f.append(['note', dtime, dur, 9, pitch, vels[pitch % 2], 128 ])
+            if dtime == time:
+              song_f.append(['note', time, dur, 9, pitch, vels[pitch % 2], 128 ])
+            else:
+              song_f.append(['note', dtime, dur, 9, pitch, vels[pitch % 2], 128 ])
 
 detailed_stats = TMIDIX.Tegridy_ms_SONG_to_MIDI_Converter(song_f,
                                                           output_signature = 'Ultimate Drums Transformer',
