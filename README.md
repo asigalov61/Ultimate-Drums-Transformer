@@ -5,6 +5,32 @@
 
 ***
 
+## [NEW] Version 3
+
+***
+
+### Velocity Version
+
+[![Open In Colab][colab-badge]][colab-notebook3]
+
+[colab-notebook3]: <https://colab.research.google.com/github/asigalov61/Ultimate-Drums-Transformer/blob/main/Ultimate_Drums_Transformer_Velocity.ipynb>
+[colab-badge]: <https://colab.research.google.com/assets/colab-badge.svg>
+
+#### This is a version with velocity
+
+***
+
+### No Velocity Version
+
+[![Open In Colab][colab-badge]][colab-notebook4]
+
+[colab-notebook4]: <https://colab.research.google.com/github/asigalov61/Ultimate-Drums-Transformer/blob/main/Ultimate_Drums_Transformer.ipynb>
+[colab-badge]: <https://colab.research.google.com/assets/colab-badge.svg>
+
+#### This is a version without velocity
+
+***
+
 ## [LEGACY] Version 2
 
 ***
