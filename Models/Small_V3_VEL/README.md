@@ -1,4 +1,5 @@
-# Ultimate Drums Transformer Small Pre-Trained Model (version 3) (with velocity)
+# Ultimate Drums Transformer Small Pre-Trained Model 
+## Version 3 (with velocity)
 
 ***
 
