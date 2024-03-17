@@ -4,7 +4,7 @@
 ***
 
 ## Model was trained on all compositions with drums from [Monster MIDI Dataset](https://github.com/asigalov61/Monster-MIDI-Dataset)
-## Model was trained for 2 hours (1 full epoh) @ 56 batches on a single H100 GPU
+## Model was trained for 2 hours (1 full epoch) @ 56 batches on a single H100 GPU
 
 ***
 
