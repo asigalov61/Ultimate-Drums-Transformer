@@ -151,14 +151,14 @@ def GenerateDrums(input_midi, input_num_tokens):
         for ss in song:
     
             if 0 <= ss < 128:
-    
-                dtime = time
-    
+
                 time += cscore[idx][0][0] * 32
     
                 for c in cscore[idx]:
                   song_f.append(['note', time, c[1] * 32, c[2], c[3], c[4], c[5]])
-    
+                    
+                dtime = time
+                
                 idx += 1
     
             if 128 <= ss < 256:
@@ -169,7 +169,14 @@ def GenerateDrums(input_midi, input_num_tokens):
     
                 pitch = (ss-256)
     
-                song_f.append(['note', dtime, dur, 9, pitch, vels[pitch % 2], 128 ])
+            if 384 <= ss < 393:
+            
+                vel = ((ss-384)+1) * 15
+            
+                if dtime == time:
+                    song_f.append(['note', time, dur, 9, pitch, vel, 128])
+                else:
+                    song_f.append(['note', dtime, dur, 9, pitch, vel, 128])
     
     detailed_stats = TMIDIX.Tegridy_ms_SONG_to_MIDI_Converter(song_f,
                                                               output_signature = 'Ultimate Drums Transformer',
@@ -235,8 +242,8 @@ if __name__ == "__main__":
     print('Loading model...')
 
     SEQ_LEN = 8192 # Models seq len
-    PAD_IDX = 385 # Models pad index
-    DEVICE = 'cuda'
+    PAD_IDX = 393 # Models pad index
+    DEVICE = 'cpu' # 'cuda'
 
     # instantiate the model
 
@@ -254,7 +261,7 @@ if __name__ == "__main__":
     print('Loading model checkpoint...')
 
     model.load_state_dict(
-        torch.load('Ultimate_Drums_Transformer_Small_Trained_Model_8134_steps_0.3745_loss_0.8736_acc.pth',
+        torch.load('Ultimate_Drums_Transformer_Small_Trained_Model_VER3_VEL_11222_steps_0.5749_loss_0.8085_acc.pth',
                    map_location=DEVICE))
     print('=' * 70)
 
@@ -315,7 +322,7 @@ if __name__ == "__main__":
             [input_midi, input_num_tokens],
             [output_midi_title, output_midi_summary, output_midi, output_audio, output_plot],
             GenerateDrums,
-            cache_examples=True,
+            cache_examples=False,
         )
         
-        app.queue(concurrency_count=8).launch(server_port=opt.port, share=opt.share, inbrowser=True)
+        app.queue(concurrency_count=1).launch(server_port=opt.port, share=opt.share, inbrowser=True)
