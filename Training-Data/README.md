@@ -43,8 +43,10 @@
 
 ***
 
-## Recommended MIDI datasets: 
-### 1) [LAKH clean_midi MIDI Subset](https://colinraffel.com/projects/lmd/) (included with code/colab)
+## Recommended MIDI datasets:
+
+### [LAKH clean_midi MIDI Subset](https://colinraffel.com/projects/lmd/) (included with code/colab)
+### [Monster MIDI Dataset](https://github.com/asigalov61/Monster-MIDI-Dataset)
 
 ***
 
