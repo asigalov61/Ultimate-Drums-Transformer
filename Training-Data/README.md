@@ -2,25 +2,44 @@
 
 ***
 
-## Velocity Version
+## Version 3
+
+***
+
+### Merged Version (velocity and no velocity)
+
+[![Open In Colab][colab-badge]][colab-notebook3]
+
+[colab-notebook3]: <https://colab.research.google.com/github/asigalov61/Ultimate-Drums-Transformer/blob/main/Training-Data/Ultimate_Drums_Transformer_Version_3_Training_Dataset_Maker.ipynb>
+[colab-badge]: <https://colab.research.google.com/assets/colab-badge.svg>
+
+#### This is the version that creates both training datasets at once
+
+***
+
+## Version 1 and 2
+
+***
+
+### Velocity Version
 
 [![Open In Colab][colab-badge]][colab-notebook1]
 
 [colab-notebook1]: <https://colab.research.google.com/github/asigalov61/Ultimate-Drums-Transformer/blob/main/Training-Data/Ultimate_Drums_Transformer_Velocity_Training_Dataset_Maker.ipynb>
 [colab-badge]: <https://colab.research.google.com/assets/colab-badge.svg>
 
-### This is the version with velocity
+#### This is the version with velocity
 
 ***
 
-## No Velocity Version
+### No Velocity Version
 
 [![Open In Colab][colab-badge]][colab-notebook2]
 
 [colab-notebook2]: <https://colab.research.google.com/github/asigalov61/Ultimate-Drums-Transformer/blob/main/Training-Data/Ultimate_Drums_Transformer_Training_Dataset_Maker.ipynb>
 [colab-badge]: <https://colab.research.google.com/assets/colab-badge.svg>
 
-### This is the version without velocity
+#### This is the version without velocity
 
 ***
 
