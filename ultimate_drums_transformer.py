@@ -425,6 +425,7 @@ else:
 #@markdown NOTE: You can stop the generation at any time to render partial results
 
 #@markdown Generation settings
+generate_from = "Beginning" # @param ["Beginning", "Last Position"]
 number_of_prime_chords = 128 # @param {type:"slider", min:4, max:8192, step:1}
 number_of_warmup_steps = 16 # @param {type:"slider", min:2, max:32, step:2}
 max_number_of_drums_pitches_per_step = 5 # @param {type:"slider", min:1, max:10, step:1}
@@ -471,39 +472,18 @@ def generate_drums(notes_times,
 
 #===============================================================================
 
-print('Warming up...')
-print('=' * 70)
+if generate_from == 'Beginning':
 
-torch.cuda.empty_cache()
+  print('Warming up...')
+  print('=' * 70)
 
-output = []
+  torch.cuda.empty_cache()
 
-warmup_times = [0] + [first_time] * number_of_warmup_steps
+  output = []
 
-for c in tqdm.tqdm(warmup_times):
-  output.append(c)
+  warmup_times = [0] + [first_time] * number_of_warmup_steps
 
-  out = generate_drums(output,
-                       temperature=temperature,
-                       max_drums_limit=max_number_of_drums_pitches_per_step,
-                       num_memory_tokens=number_of_memory_tokens
-                       )
-  output.extend(out)
-
-output = [0] + output[-output[::-1].index(first_time):]
-
-print('=' * 70)
-
-#===============================================================================
-
-print('Generating drum track...')
-print('=' * 70)
-
-torch.cuda.empty_cache()
-
-for c in tqdm.tqdm(comp_times[:number_of_prime_chords]):
-
-  try:
+  for c in tqdm.tqdm(warmup_times):
     output.append(c)
 
     out = generate_drums(output,
@@ -513,15 +493,80 @@ for c in tqdm.tqdm(comp_times[:number_of_prime_chords]):
                         )
     output.extend(out)
 
-  except KeyboardInterrupt:
+  output = [0] + output[-output[::-1].index(first_time):]
+
+  print('=' * 70)
+
+  #===============================================================================
+
+  print('Generating drum track...')
+  print('=' * 70)
+
+  pidx = 0
+
+  torch.cuda.empty_cache()
+
+  for c in tqdm.tqdm(comp_times[:number_of_prime_chords]):
+
+    try:
+      output.append(c)
+
+      out = generate_drums(output,
+                          temperature=temperature,
+                          max_drums_limit=max_number_of_drums_pitches_per_step,
+                          num_memory_tokens=number_of_memory_tokens
+                          )
+      output.extend(out)
+
+      pidx += 1
+
+    except KeyboardInterrupt:
+      print('=' * 70)
+      print('Stopping generation...')
+      break
+
+    except:
+      break
+
+  torch.cuda.empty_cache()
+
+else:
+
+  if pidx > 0:
+
+    #===============================================================================
+
+    print('Continuing generating drum track...')
     print('=' * 70)
-    print('Stopping generation...')
-    break
 
-  except:
-    break
+    torch.cuda.empty_cache()
 
-torch.cuda.empty_cache()
+    for c in tqdm.tqdm(comp_times[pidx:number_of_prime_chords]):
+
+      try:
+        output.append(c)
+
+        out = generate_drums(output,
+                            temperature=temperature,
+                            max_drums_limit=max_number_of_drums_pitches_per_step,
+                            num_memory_tokens=number_of_memory_tokens
+                            )
+        output.extend(out)
+
+      except KeyboardInterrupt:
+        print('=' * 70)
+        print('Stopping generation...')
+        break
+
+      except:
+        break
+
+    torch.cuda.empty_cache()
+
+  else:
+    print('=' * 70)
+    print('Nothing to continue!')
+    print('Please start from the begining...')
 
 #===============================================================================
 
