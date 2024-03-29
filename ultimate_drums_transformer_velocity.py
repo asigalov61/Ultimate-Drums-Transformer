@@ -426,7 +426,7 @@ else:
 
 #@markdown Generation settings
 generate_from = "Beginning" # @param ["Beginning", "Last Position"]
-number_of_prime_chords = 128 # @param {type:"slider", min:4, max:8192, step:1}
+number_of_chords_to_generate_drums_for = 128 # @param {type:"slider", min:4, max:8192, step:1}
 number_of_warmup_steps = 16 # @param {type:"slider", min:2, max:32, step:2}
 max_number_of_drums_pitches_per_step = 5 # @param {type:"slider", min:1, max:10, step:1}
 number_of_memory_tokens = 4096 # @param {type:"slider", min:32, max:8188, step:16}
@@ -506,9 +506,12 @@ if generate_from == 'Beginning':
 
   torch.cuda.empty_cache()
 
-  for c in tqdm.tqdm(comp_times[:number_of_prime_chords]):
+  for c in tqdm.tqdm(comp_times[:number_of_chords_to_generate_drums_for]):
 
     try:
+
+      pidx += 1
+
       output.append(c)
 
       out = generate_drums(output,
@@ -516,12 +519,11 @@ if generate_from == 'Beginning':
                           max_drums_limit=max_number_of_drums_pitches_per_step,
                           num_memory_tokens=number_of_memory_tokens
                           )
+
+
       output.extend(out)
 
-      pidx += 1
-
     except KeyboardInterrupt:
-      print('=' * 70)
       print('Stopping generation...')
       break
 
@@ -532,7 +534,7 @@ if generate_from == 'Beginning':
 
 else:
 
-  if pidx > 0:
+  if pidx > 0 and pidx < len(comp_times[:number_of_chords_to_generate_drums_for]):
 
     #===============================================================================
 
@@ -541,7 +543,7 @@ else:
 
     torch.cuda.empty_cache()
 
-    for c in tqdm.tqdm(comp_times[pidx:number_of_prime_chords]):
+    for c in tqdm.tqdm(comp_times[pidx:number_of_chords_to_generate_drums_for]):
 
       try:
         output.append(c)
@@ -552,6 +554,8 @@ else:
                             num_memory_tokens=number_of_memory_tokens
                             )
         output.extend(out)
+
+        pidx += 1
 
       except KeyboardInterrupt:
         print('=' * 70)
@@ -564,12 +568,12 @@ else:
     torch.cuda.empty_cache()
 
   else:
-    print('=' * 70)
     print('Nothing to continue!')
     print('Please start from the begining...')
 
 #===============================================================================
 
+print('=' * 70)
 print('Done!')
 print('=' * 70)
 
