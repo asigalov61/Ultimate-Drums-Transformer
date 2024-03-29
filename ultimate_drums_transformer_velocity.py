@@ -197,7 +197,7 @@ if plot_tokens_embeddings:
 melody_MIDI_patch_number = 0 # @param {type:"slider", min:0, max:127, step:1}
 number_of_tokens_tp_generate = 258 # @param {type:"slider", min:30, max:8190, step:3}
 number_of_batches_to_generate = 4 #@param {type:"slider", min:1, max:16, step:1}
-temperature = 1 # @param {type:"slider", min:0.1, max:1, step:0.05}
+temperature = 0.9 # @param {type:"slider", min:0.1, max:1, step:0.05}
 
 #@markdown Other settings
 
@@ -311,7 +311,7 @@ for i in range(number_of_batches_to_generate):
 
       TMIDIX.plot_ms_SONG(song_f, plot_title=fname)
 
-"""# (CUSTOM MIDI)"""
+"""# (DRUMS TRACK GENERATION)"""
 
 #@title Load Seed MIDI
 
@@ -374,7 +374,9 @@ if f != '':
 
   cscore_melody = [c[0] for c in cscore]
 
-  comp_times = [0] + [t[1] for t in dscore if t[1] != 0]
+  comp_times = [t[1] for t in dscore if t[1] != 0]
+
+  first_time = comp_times[0]
 
   #=======================================================
 
@@ -420,15 +422,16 @@ if f != '':
 else:
   print('=' * 70)
 
-"""# (DRUMS TRACK GENERATION)"""
-
 #@title Drums track generation
+
+#@markdown NOTE: You can stop the generation at any time to render partial results
 
 #@markdown Generation settings
 number_of_prime_chords = 128 # @param {type:"slider", min:4, max:8192, step:1}
+number_of_warmup_steps = 16 # @param {type:"slider", min:2, max:32, step:2}
 max_number_of_drums_pitches_per_step = 5 # @param {type:"slider", min:1, max:10, step:1}
 number_of_memory_tokens = 4096 # @param {type:"slider", min:32, max:8188, step:16}
-temperature = 1 # @param {type:"slider", min:0.1, max:1, step:0.05}
+temperature = 0.9 # @param {type:"slider", min:0.1, max:1, step:0.05}
 
 #@markdown Other settings
 render_MIDI_to_audio = True # @param {type:"boolean"}
@@ -470,11 +473,16 @@ def generate_drums(notes_times,
 
 #===============================================================================
 
+print('Warming up...')
+print('=' * 70)
+
 torch.cuda.empty_cache()
 
 output = []
 
-for c in tqdm.tqdm(comp_times[:number_of_prime_chords]):
+warmup_times = [0] + [first_time] * number_of_warmup_steps
+
+for c in tqdm.tqdm(warmup_times):
   output.append(c)
 
   out = generate_drums(output,
@@ -483,6 +491,37 @@ for c in tqdm.tqdm(comp_times[:number_of_prime_chords]):
                        num_memory_tokens=number_of_memory_tokens
                        )
   output.extend(out)
+
+output = [0] + output[-output[::-1].index(first_time):]
+
+print('=' * 70)
+
+#===============================================================================
+
+print('Generating drum track...')
+print('=' * 70)
+
+torch.cuda.empty_cache()
+
+for c in tqdm.tqdm(comp_times[:number_of_prime_chords]):
+
+  try:
+    output.append(c)
+
+    out = generate_drums(output,
+                        temperature=temperature,
+                        max_drums_limit=max_number_of_drums_pitches_per_step,
+                        num_memory_tokens=number_of_memory_tokens
+                        )
+    output.extend(out)
+
+  except KeyboardInterrupt:
+    print('=' * 70)
+    print('Stopping generation...')
+    break
+
+  except:
+    break
 
 torch.cuda.empty_cache()
 
