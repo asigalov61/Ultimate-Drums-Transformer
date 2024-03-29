@@ -370,12 +370,6 @@ if f != '':
 
   cscore = TMIDIX.chordify_score([d[1:] for d in dscore])
 
-  cscore_melody = [c[0] for c in cscore]
-
-  comp_times = [t[1] for t in dscore if t[1] != 0]
-
-  first_time = comp_times[0]
-
   #=======================================================
 
   song_f = escore_notes
@@ -402,7 +396,6 @@ if f != '':
   print('=' * 70)
   print('Composition stats:')
   print('Composition has', len(cscore), 'chords')
-  print('Composition has', len(comp_times), 'time tokens')
   print('Composition MIDI patches:', sorted(set(patches)))
   print('=' * 70)
 
@@ -427,8 +420,9 @@ else:
 #@markdown Generation settings
 generate_from = "Beginning" # @param ["Beginning", "Last Position"]
 number_of_chords_to_generate_drums_for = 128 # @param {type:"slider", min:4, max:8192, step:1}
+drums_generation_step_in_chords = 1 # @param {type:"slider", min:1, max:4, step:1}
+max_number_of_drums_pitches_per_step = 8 # @param {type:"slider", min:1, max:16, step:1}
 number_of_warmup_steps = 16 # @param {type:"slider", min:2, max:32, step:2}
-max_number_of_drums_pitches_per_step = 5 # @param {type:"slider", min:1, max:10, step:1}
 number_of_memory_tokens = 4096 # @param {type:"slider", min:32, max:8188, step:16}
 temperature = 0.9 # @param {type:"slider", min:0.1, max:1, step:0.05}
 
@@ -441,12 +435,12 @@ print('=' * 70)
 
 #===============================================================================
 
-def generate_drums(notes_times,
+def generate_drums(input_seq,
                    max_drums_limit = 8,
                    num_memory_tokens = 4096,
                    temperature=0.9):
 
-    x = torch.tensor([notes_times] * 1, dtype=torch.long, device='cuda')
+    x = torch.tensor([input_seq] * 1, dtype=torch.long, device='cuda')
 
     o = 128
 
@@ -468,9 +462,19 @@ def generate_drums(notes_times,
       if o > 127:
         x = torch.cat((x, out), 1)
 
-    return x.tolist()[0][len(notes_times):]
+    return x.tolist()[0][len(input_seq):]
 
 #===============================================================================
+
+sum_by_step = lambda lst, step: [sum(lst[i:i+step]) for i in range(0, len(lst), step)]
+
+#===============================================================================
+
+comp_times = [t[1] for t in dscore if t[1] != 0]
+
+comp_times = list(sum_by_step(comp_times, drums_generation_step_in_chords))
+
+first_time = comp_times[0]
 
 if generate_from == 'Beginning':
 
@@ -499,7 +503,7 @@ if generate_from == 'Beginning':
 
   #===============================================================================
 
-  print('Generating drum track...')
+  print('Generating drums track...')
   print('=' * 70)
 
   pidx = 0
@@ -538,7 +542,7 @@ else:
 
     #===============================================================================
 
-    print('Continuing generating drum track...')
+    print('Continuing generating drums track...')
     print('=' * 70)
 
     torch.cuda.empty_cache()
@@ -578,6 +582,7 @@ print('Done!')
 print('=' * 70)
 
 #===============================================================================
+
 print('Rendering results...')
 
 print('=' * 70)
@@ -602,14 +607,11 @@ if len(output) != 0:
 
     for ss in song:
 
-        if 0 <= ss < 128:
+        if 0  < ss < 128:
 
-            time += cscore[idx][0][0] * 32
+            time += comp_times[idx] * 32
 
             dtime = time
-
-            for c in cscore[idx]:
-              song_f.append(['note', time, c[1] * 32, c[2], c[3], c[4], c[5]])
 
             idx += 1
 
@@ -625,6 +627,24 @@ if len(output) != 0:
               song_f.append(['note', time, dur, 9, pitch, vels[pitch % 2], 128 ])
             else:
               song_f.append(['note', dtime, dur, 9, pitch, vels[pitch % 2], 128 ])
+
+#===============================================================================
+
+original_score = []
+time = 0
+
+for c in cscore[:((pidx+1) * drums_generation_step_in_chords)]:
+  for cc in c:
+    time += cc[0] * 32
+    dur = cc[1] * 32
+    original_note = ['note'] + copy.deepcopy(cc)
+    original_note[1] = time
+    original_note[2] = dur
+    original_score.append(original_note)
+
+song_f = sorted(original_score + song_f, key=lambda x: x[1])
+
+#===============================================================================
 
 detailed_stats = TMIDIX.Tegridy_ms_SONG_to_MIDI_Converter(song_f,
                                                           output_signature = 'Ultimate Drums Transformer',
