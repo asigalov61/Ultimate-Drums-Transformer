@@ -479,15 +479,11 @@ if generate_from == 'Beginning':
 
   output = []
 
-  pidx = 0
-
   torch.cuda.empty_cache()
 
   for c in tqdm.tqdm(comp_times[:number_of_chords_to_generate_drums_for]):
 
     try:
-
-      pidx += 1
 
       output.append(c)
 
@@ -511,6 +507,8 @@ if generate_from == 'Beginning':
 
 else:
 
+  pidx = sum([1 for o in output if o < 128])
+
   if pidx > 0 and pidx < len(comp_times[:number_of_chords_to_generate_drums_for]):
 
     #===============================================================================
@@ -531,8 +529,6 @@ else:
                             num_memory_tokens=number_of_memory_tokens
                             )
         output.extend(out)
-
-        pidx += 1
 
       except KeyboardInterrupt:
         print('=' * 70)
@@ -573,7 +569,6 @@ if len(output) != 0:
     vel = 90
     pitch = 0
     channel = 0
-    idx = 0
 
     for ss in song:
 
@@ -581,11 +576,9 @@ if len(output) != 0:
 
             ptime = time
 
-            time += comp_times[idx] * 32
+            time += ss * 32
 
             dtime = ptime
-
-            idx += 1
 
         if 128 <= ss < 256:
 
@@ -606,7 +599,9 @@ if len(output) != 0:
 original_score = []
 time = 0
 
-for c in cscore[:((pidx+1) * drums_generation_step_in_chords)]:
+pidx = sum([1 for o in output if o < 128])
+
+for c in cscore[:(pidx * drums_generation_step_in_chords)]:
   for cc in c:
     time += cc[0] * 32
     dur = cc[1] * 32
