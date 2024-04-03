@@ -418,7 +418,7 @@ else:
 
 #@markdown Generation settings
 generate_from = "Beginning" # @param ["Beginning", "Last Position"]
-number_of_chords_to_generate_drums_for = 128 # @param {type:"slider", min:4, max:8192, step:4}
+number_of_chords_to_generate_drums_for = 64 # @param {type:"slider", min:4, max:8192, step:4}
 drums_generation_step_in_chords = 2 # @param {type:"slider", min:1, max:4, step:1}
 max_number_of_drums_pitches_per_step = 3 # @param {type:"slider", min:1, max:16, step:1}
 number_of_memory_tokens = 4096 # @param {type:"slider", min:32, max:8188, step:16}
@@ -444,7 +444,11 @@ def generate_drums(input_seq,
 
     ncount = 0
 
-    while o > 127 and ncount < max_drums_limit:
+    time = 0
+
+    ntime = input_seq[-1]
+
+    while o > 127 and ncount < max_drums_limit and time < ntime:
       with ctx:
         out = model.generate(x[-num_memory_tokens:],
                             1,
@@ -456,6 +460,7 @@ def generate_drums(input_seq,
 
       if 128 <= o < 256:
         ncount = 0
+        time += (o-128)
 
       if 384 <= o < 393:
         ncount += 1
