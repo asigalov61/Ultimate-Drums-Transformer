@@ -465,7 +465,7 @@ def generate_drums(input_seq,
       if 384 <= o < 393:
         ncount += 1
 
-      if o > 127:
+      if o > 127 and time < ntime:
         x = torch.cat((x, out), 1)
 
     return x.tolist()[0][len(input_seq):]
