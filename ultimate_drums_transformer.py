@@ -487,7 +487,7 @@ def generate_drums(input_seq,
         ncount = 0
         time += (o-128)
 
-      if 384 <= o < 393:
+      if 384 < o < 393:
         ncount += 1
 
       if o > 127 and time < ntime:
