@@ -1,6 +1,3 @@
-import argparse
-import glob
-import json
 import os.path
 
 import time as reqtime
@@ -9,6 +6,7 @@ from pytz import timezone
 
 import torch
 
+import spaces
 import gradio as gr
 
 from x_transformer_1_23_2 import *
@@ -21,50 +19,57 @@ import TMIDIX
 import matplotlib.pyplot as plt
 
 in_space = os.getenv("SYSTEM") == "spaces"
-
+         
 # =================================================================================================
-
-def generate_drums(notes_times,
-                   max_drums_limit = 8,
-                   num_memory_tokens = 4096,
-                   temperature=0.9):
-
-    x = torch.tensor([notes_times] * 1, dtype=torch.long, device=DEVICE)
-
-    o = 128
-
-    ncount = 0
-
-    while o > 127 and ncount < max_drums_limit:
-      with ctx:
-        out = model.generate(x[-num_memory_tokens:],
-                            1,
-                            temperature=temperature,
-                            return_prime=False,
-                            verbose=False)
-
-      o = out.tolist()[0][0]
-
-      if 256 <= o < 384:
-        ncount += 1
-
-      if o > 127:
-        x = torch.cat((x, out), 1)
-
-    return x.tolist()[0][len(notes_times):]
-
-# =================================================================================================
-
-@torch.no_grad()
+                       
+@spaces.GPU
 def GenerateDrums(input_midi, input_num_tokens):
     print('=' * 70)
     print('Req start time: {:%Y-%m-%d %H:%M:%S}'.format(datetime.datetime.now(PDT)))
     start_time = reqtime.time()
 
+    print('Loading model...')
+
+    SEQ_LEN = 8192 # Models seq len
+    PAD_IDX = 393 # Models pad index
+    DEVICE = 'cuda' # 'cuda'
+
+    # instantiate the model
+
+    model = TransformerWrapper(
+        num_tokens = PAD_IDX+1,
+        max_seq_len = SEQ_LEN,
+        attn_layers = Decoder(dim = 1024, depth = 4, heads = 16, attn_flash = True)
+        )
+    
+    model = AutoregressiveWrapper(model, ignore_index = PAD_IDX)
+
+    model.to(DEVICE)
+    print('=' * 70)
+
+    print('Loading model checkpoint...')
+
+    model.load_state_dict(
+        torch.load('Ultimate_Drums_Transformer_Small_Trained_Model_VER4_RST_VEL_4L_16534_steps_0.4074_loss_0.8631_acc.pth',
+                   map_location=DEVICE))
+    print('=' * 70)
+
+    model.eval()
+
+    if DEVICE == 'cpu':
+        dtype = torch.bfloat16
+    else:
+        dtype = torch.float16
+
+    ctx = torch.amp.autocast(device_type=DEVICE, dtype=dtype)
+
+    print('Done!')
+    print('=' * 70)
+
     fn = os.path.basename(input_midi.name)
     fn1 = fn.split('.')[0]
 
-    input_num_tokens = int(input_num_tokens)
+    input_num_tokens = max(16, min(2048, input_num_tokens))
 
     print('-' * 70)
     print('Input file name:', fn)
@@ -99,7 +104,7 @@ def GenerateDrums(input_midi, input_num_tokens):
     
     cscore_melody = [c[0] for c in cscore]
     
-    comp_times = [0] + [t[1] for t in dscore if t[1] != 0]
+    comp_times = [t[1] for t in dscore if t[1] != 0]
 
     #===============================================================================
 
@@ -111,15 +116,45 @@ def GenerateDrums(input_midi, input_num_tokens):
 
     output = []
 
+    temperature=0.9
+    max_drums_limit=4
+    num_memory_tokens=4096
+
     for c in comp_times[:input_num_tokens]:
-      output.append(c)
+        output.append(c)
     
-      out = generate_drums(output,
-                           temperature=0.9,
-                           max_drums_limit=8,
-                           num_memory_tokens=4096
-                           )
-      output.extend(out)
+        x = torch.tensor([output] * 1, dtype=torch.long, device=DEVICE)
+        
+        o = 128
+        
+        ncount = 0
+
+        time = 0
+        ntime = output[-1]
+        
+        while o > 127 and ncount < max_drums_limit and time < ntime:
+          with ctx:
+            out = model.generate(x[-num_memory_tokens:],
+                                1,
+                                temperature=temperature,
+                                return_prime=False,
+                                verbose=False)
+        
+          o = out.tolist()[0][0]
+
+          if 128 <= o < 256:
+              time += (o-128)
+              ncount = 0
+        
+          if 256 <= o < 384:
+            ncount += 1
+        
+          if o > 127 and time < ntime:
+            x = torch.cat((x, out), 1)
+        
+        x_output = x.tolist()[0][len(output):]
+        
+        output.extend(x_output)
 
     print('=' * 70)
     print('Done!')
@@ -140,6 +175,7 @@ def GenerateDrums(input_midi, input_num_tokens):
         time = 0
         dtime = 0
         ntime = 0
+        ptime = 0
         dur = 32
         vel = 90
         vels = [100, 120]
@@ -151,6 +187,8 @@ def GenerateDrums(input_midi, input_num_tokens):
         for ss in song:
     
             if 0 <= ss < 128:
+
+                dtime = ptime = time
 
                 time += cscore[idx][0][0] * 32
     
@@ -170,12 +208,11 @@ def GenerateDrums(input_midi, input_num_tokens):
                 pitch = (ss-256)
     
             if 384 <= ss < 393:
-            
-                vel = ((ss-384)+1) * 15
-            
-                if dtime == time:
-                    song_f.append(['note', time, dur, 9, pitch, vel, 128])
-                else:
+
+                if pitch != 0:
+    
+                    vel = (ss-384) * 15
+        
                     song_f.append(['note', dtime, dur, 9, pitch, vel, 128])
     
     detailed_stats = TMIDIX.Tegridy_ms_SONG_to_MIDI_Converter(song_f,
@@ -219,8 +256,8 @@ def GenerateDrums(input_midi, input_num_tokens):
     print('Req end time: {:%Y-%m-%d %H:%M:%S}'.format(datetime.datetime.now(PDT)))
     print('-' * 70)
     print('Req execution time:', (reqtime.time() - start_time), 'sec')
-    
-    yield output_midi_title, output_midi_summary, output_midi, output_audio, output_plot
+
+    return [output_midi_title, output_midi_summary, output_midi, output_audio, output_plot]
 
 # =================================================================================================
 
@@ -231,52 +268,9 @@ if __name__ == "__main__":
     print('=' * 70)
     print('App start time: {:%Y-%m-%d %H:%M:%S}'.format(datetime.datetime.now(PDT)))
     print('=' * 70)
-    
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--share", action="store_true", default=False, help="share gradio app")
-    parser.add_argument("--port", type=int, default=7860, help="gradio server port")
-    opt = parser.parse_args()
 
     soundfont = "SGM-v2.01-YamahaGrand-Guit-Bass-v2.7.sf2"
-    
-    print('Loading model...')
-
-    SEQ_LEN = 8192 # Models seq len
-    PAD_IDX = 393 # Models pad index
-    DEVICE = 'cpu' # 'cuda'
-
-    # instantiate the model
-
-    model = TransformerWrapper(
-        num_tokens = PAD_IDX+1,
-        max_seq_len = SEQ_LEN,
-        attn_layers = Decoder(dim = 1024, depth = 4, heads = 8, attn_flash = True)
-        )
-    
-    model = AutoregressiveWrapper(model, ignore_index = PAD_IDX)
-
-    model.to(DEVICE)
-    print('=' * 70)
-
-    print('Loading model checkpoint...')
-
-    model.load_state_dict(
-        torch.load('Ultimate_Drums_Transformer_Small_Trained_Model_VER3_VEL_11222_steps_0.5749_loss_0.8085_acc.pth',
-                   map_location=DEVICE))
-    print('=' * 70)
-
-    model.eval()
-
-    if DEVICE == 'cpu':
-        dtype = torch.bfloat16
-    else:
-        dtype = torch.float16
-
-    ctx = torch.amp.autocast(device_type=DEVICE, dtype=dtype)
-
-    print('Done!')
-    print('=' * 70)
-
+   
     app = gr.Blocks()
     with app:
         gr.Markdown("<h1 style='text-align: center; margin-bottom: 1rem'>Ultimate Drums Transformer</h1>")
@@ -292,7 +286,7 @@ if __name__ == "__main__":
         gr.Markdown("## Upload your MIDI or select a sample example MIDI")
         
         input_midi = gr.File(label="Input MIDI", file_types=[".midi", ".mid", ".kar"])
-        input_num_tokens = gr.Slider(16, 512, value=256, label="Number of Tokens", info="Number of tokens to generate")
+        input_num_tokens = gr.Slider(16, 2048, value=256, step=16, label="Number of Tokens", info="Number of tokens to generate")
         
         run_btn = gr.Button("generate", variant="primary")
 
@@ -309,20 +303,20 @@ if __name__ == "__main__":
                                   [output_midi_title, output_midi_summary, output_midi, output_audio, output_plot])
 
         gr.Examples(
-            [["Ultimate-Drums-Transformer-Melody-Seed-1.mid", 256], 
-             ["Ultimate-Drums-Transformer-Melody-Seed-2.mid", 256], 
-             ["Ultimate-Drums-Transformer-Melody-Seed-3.mid", 256],
-             ["Ultimate-Drums-Transformer-Melody-Seed-4.mid", 256],
-             ["Ultimate-Drums-Transformer-Melody-Seed-5.mid", 256],
-             ["Ultimate-Drums-Transformer-Melody-Seed-6.mid", 256],
-             ["Ultimate-Drums-Transformer-MI-Seed-1.mid", 256],
-             ["Ultimate-Drums-Transformer-MI-Seed-2.mid", 256],
-             ["Ultimate-Drums-Transformer-MI-Seed-3.mid", 256],
-             ["Ultimate-Drums-Transformer-MI-Seed-4.mid", 256]],
+            [["Ultimate-Drums-Transformer-Melody-Seed-1.mid", 128], 
+             ["Ultimate-Drums-Transformer-Melody-Seed-2.mid", 128], 
+             ["Ultimate-Drums-Transformer-Melody-Seed-3.mid", 128],
+             ["Ultimate-Drums-Transformer-Melody-Seed-4.mid", 128],
+             ["Ultimate-Drums-Transformer-Melody-Seed-5.mid", 128],
+             ["Ultimate-Drums-Transformer-Melody-Seed-6.mid", 128],
+             ["Ultimate-Drums-Transformer-MI-Seed-1.mid", 128],
+             ["Ultimate-Drums-Transformer-MI-Seed-2.mid", 128],
+             ["Ultimate-Drums-Transformer-MI-Seed-3.mid", 128],
+             ["Ultimate-Drums-Transformer-MI-Seed-4.mid", 128]],
             [input_midi, input_num_tokens],
             [output_midi_title, output_midi_summary, output_midi, output_audio, output_plot],
             GenerateDrums,
-            cache_examples=False,
+            cache_examples=True,
         )
         
-        app.queue(concurrency_count=1).launch(server_port=opt.port, share=opt.share, inbrowser=True)
+        app.queue().launch()
