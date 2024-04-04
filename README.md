@@ -13,11 +13,11 @@
 
 ***
 
-## [NEW] [FINAL] Version 4
+## [FINAL] Version 4
 
 ***
 
-### Version with lookahead, velocity and rests
+### [BEST] Version with lookahead, velocity and rests
 
 [![Open In Colab][colab-badge]][colab-notebook6]
 
