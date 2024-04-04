@@ -93,7 +93,7 @@ print('=' * 70)
 
 #@markdown Models selection
 
-select_model = "59M-4L-Small-Very-Fast" # @param ["59M-4L-Small-Very-Fast", "109M-8L-Small-Fast"]
+select_model = "109M-8L-Small-Fast" # @param ["59M-4L-Small-Very-Fast", "109M-8L-Small-Fast"]
 
 #@markdown Model precision option
 
