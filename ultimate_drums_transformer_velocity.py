@@ -609,7 +609,7 @@ time = 0
 
 pidx = sum([1 for o in output if o < 128])
 
-for c in cscore[:(pidx * drums_generation_step_in_chords)]:
+for c in cscore[:((pidx+1) * drums_generation_step_in_chords)]:
   for cc in c:
     time += cc[0] * 32
     dur = cc[1] * 32
