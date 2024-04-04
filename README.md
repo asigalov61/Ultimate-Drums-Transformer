@@ -9,6 +9,10 @@
 
 ***
 
+## 🥁 [Ultimate Drums Transformer Ooutput Samples on SoundCloud](https://soundcloud.com/aleksandr-sigalov-61/sets/ultimate-drums-transformer) 🥁
+
+***
+
 ## [NEW] [FINAL] Version 4
 
 ***
