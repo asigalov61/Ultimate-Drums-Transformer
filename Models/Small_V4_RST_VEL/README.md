@@ -1,4 +1,4 @@
-# Ultimate Drums Transformer Small Pre-Trained Model 
+# Ultimate Drums Transformer Small (4 Layers) Pre-Trained Model 
 ## Version 4 (lookahead with rests and velocity)
 
 ***
