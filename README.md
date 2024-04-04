@@ -24,7 +24,6 @@
 [colab-notebook6]: <https://colab.research.google.com/github/asigalov61/Ultimate-Drums-Transformer/blob/main/Ultimate_Drums_Transformer.ipynb>
 [colab-badge]: <https://colab.research.google.com/assets/colab-badge.svg>
 
-#### This is a lookahead version with velocity and rests
 #### In this version model decides itself for which time-step of the composition generate drums pitches
 
 ***
@@ -36,7 +35,6 @@
 [colab-notebook5]: <https://colab.research.google.com/github/asigalov61/Ultimate-Drums-Transformer/blob/main/Ultimate_Drums_Transformer_Velocity.ipynb>
 [colab-badge]: <https://colab.research.google.com/assets/colab-badge.svg>
 
-#### This is a lookahead version with velocity but without rests
 #### In this version model generates drums pitches for each time-step of the composition
 
 ***
