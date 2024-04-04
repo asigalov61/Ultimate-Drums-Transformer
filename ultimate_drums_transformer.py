@@ -443,8 +443,8 @@ else:
 #@title Drums track generation
 
 #@markdown Generation settings
-generate_from = "Last Position" # @param ["Beginning", "Last Position"]
-number_of_chords_to_generate_drums_for = 8192 # @param {type:"slider", min:4, max:8192, step:4}
+generate_from = "Beginning" # @param ["Beginning", "Last Position"]
+number_of_chords_to_generate_drums_for = 128 # @param {type:"slider", min:4, max:8192, step:4}
 max_number_of_drums_pitches_per_step = 3 # @param {type:"slider", min:1, max:16, step:1}
 number_of_memory_tokens = 4096 # @param {type:"slider", min:32, max:8188, step:16}
 temperature = 0.9 # @param {type:"slider", min:0.1, max:1, step:0.05}
