@@ -5,7 +5,7 @@
 
 ***
 
-## Check out 🤗 [LIVE DEMO of the Ultimate Drums Transformer on Hugging Face Spaces](https://huggingface.co/spaces/asigalov61/Ultimate-Drums-Transformer) 🤗
+## 🤗 [LIVE DEMO of the Ultimate Drums Transformer on Hugging Face Spaces](https://huggingface.co/spaces/asigalov61/Ultimate-Drums-Transformer) 🤗
 
 ***
 
