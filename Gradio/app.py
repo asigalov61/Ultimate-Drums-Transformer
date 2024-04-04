@@ -39,7 +39,7 @@ def GenerateDrums(input_midi, input_num_tokens):
     model = TransformerWrapper(
         num_tokens = PAD_IDX+1,
         max_seq_len = SEQ_LEN,
-        attn_layers = Decoder(dim = 1024, depth = 4, heads = 16, attn_flash = True)
+        attn_layers = Decoder(dim = 1024, depth = 8, heads = 16, attn_flash = True)
         )
     
     model = AutoregressiveWrapper(model, ignore_index = PAD_IDX)
@@ -50,7 +50,7 @@ def GenerateDrums(input_midi, input_num_tokens):
     print('Loading model checkpoint...')
 
     model.load_state_dict(
-        torch.load('Ultimate_Drums_Transformer_Small_Trained_Model_VER4_RST_VEL_4L_16534_steps_0.4074_loss_0.8631_acc.pth',
+        torch.load('Ultimate_Drums_Transformer_Small_Trained_Model_VER4_RST_VEL_8L_13501_steps_0.3341_loss_0.8893_acc.pth',
                    map_location=DEVICE))
     print('=' * 70)
 
@@ -146,7 +146,7 @@ def GenerateDrums(input_midi, input_num_tokens):
               time += (o-128)
               ncount = 0
         
-          if 256 <= o < 384:
+          if 256 < o < 384:
             ncount += 1
         
           if o > 127 and time < ntime:
@@ -286,7 +286,7 @@ if __name__ == "__main__":
         gr.Markdown("## Upload your MIDI or select a sample example MIDI")
         
         input_midi = gr.File(label="Input MIDI", file_types=[".midi", ".mid", ".kar"])
-        input_num_tokens = gr.Slider(16, 2048, value=256, step=16, label="Number of Tokens", info="Number of tokens to generate")
+        input_num_tokens = gr.Slider(16, 2048, value=256, step=16, label="Number of composition chords to generate drums for")
         
         run_btn = gr.Button("generate", variant="primary")
 
