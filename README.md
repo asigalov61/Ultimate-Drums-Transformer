@@ -5,18 +5,35 @@
 
 ***
 
-## [NEW] Version 4
+## Check out 🤗 [LIVE DEMO of the Ultimate Drums Transformer on Hugging Face Spaces](https://huggingface.co/spaces/asigalov61/Ultimate-Drums-Transformer) 🤗
 
 ***
 
-### Lookahead Velocity Version
+## [NEW] [FINAL] Version 4
+
+***
+
+### Version with lookahead, velocity and rests
+
+[![Open In Colab][colab-badge]][colab-notebook6]
+
+[colab-notebook6]: <https://colab.research.google.com/github/asigalov61/Ultimate-Drums-Transformer/blob/main/Ultimate_Drums_Transformer.ipynb>
+[colab-badge]: <https://colab.research.google.com/assets/colab-badge.svg>
+
+#### This is a lookahead version with rests and velocity
+#### In this version model will decide itself for which time-step of the composition to generate drums pitches
+
+***
+
+### Version with lookahead and velocity but without rests
 
 [![Open In Colab][colab-badge]][colab-notebook5]
 
 [colab-notebook5]: <https://colab.research.google.com/github/asigalov61/Ultimate-Drums-Transformer/blob/main/Ultimate_Drums_Transformer_Velocity.ipynb>
 [colab-badge]: <https://colab.research.google.com/assets/colab-badge.svg>
 
-#### This is a lookahead version with velocity
+#### This is a lookahead version without rests with velocity
+#### In this version model will generate drums pitches for each time-step of the composition
 
 ***
 
