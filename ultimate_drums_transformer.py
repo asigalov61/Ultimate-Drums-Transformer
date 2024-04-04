@@ -93,7 +93,7 @@ print('=' * 70)
 
 #@markdown Models selection
 
-select_model = "59M-4L-Small-Very-Fast" # @param ["59M-4L-Small-Very-Fast"]
+select_model = "59M-4L-Small-Very-Fast" # @param ["59M-4L-Small-Very-Fast", "109M-8L-Small-Fast"]
 
 #@markdown Model precision option
 
@@ -117,6 +117,22 @@ if select_model == '59M-4L-Small-Very-Fast':
   depth = 4
 
   model_checkpoint_file_name = 'Ultimate_Drums_Transformer_Small_Trained_Model_VER4_RST_VEL_4L_16534_steps_0.4074_loss_0.8631_acc.pth'
+  model_path = full_path_to_models_dir+'/Small_V4_RST_VEL/'+model_checkpoint_file_name
+  if os.path.isfile(model_path):
+    print('Model already exists...')
+
+  else:
+    hf_hub_download(repo_id='asigalov61/Ultimate-Drums-Transformer',
+                    filename=model_checkpoint_file_name,
+                    local_dir='/content/Ultimate-Drums-Transformer/Models/Small_V4_RST_VEL',
+                    local_dir_use_symlinks=False)
+
+else:
+
+  depth = 8
+
+  model_checkpoint_file_name = 'Ultimate_Drums_Transformer_Small_Trained_Model_VER4_RST_VEL_8L_13501_steps_0.3341_loss_0.8893_acc.pth'
+
   model_path = full_path_to_models_dir+'/Small_V4_RST_VEL/'+model_checkpoint_file_name
   if os.path.isfile(model_path):
     print('Model already exists...')
@@ -203,7 +219,7 @@ if plot_tokens_embeddings:
 #@markdown Generation settings
 
 melody_MIDI_patch_number = 0 # @param {type:"slider", min:0, max:127, step:1}
-number_of_tokens_tp_generate = 258 # @param {type:"slider", min:30, max:8190, step:3}
+number_of_tokens_tp_generate = 256 # @param {type:"slider", min:40, max:8192, step:4}
 number_of_batches_to_generate = 4 #@param {type:"slider", min:1, max:16, step:1}
 temperature = 0.9 # @param {type:"slider", min:0.1, max:1, step:0.05}
 
@@ -427,8 +443,8 @@ else:
 #@title Drums track generation
 
 #@markdown Generation settings
-generate_from = "Beginning" # @param ["Beginning", "Last Position"]
-number_of_chords_to_generate_drums_for = 128 # @param {type:"slider", min:4, max:8192, step:4}
+generate_from = "Last Position" # @param ["Beginning", "Last Position"]
+number_of_chords_to_generate_drums_for = 8192 # @param {type:"slider", min:4, max:8192, step:4}
 max_number_of_drums_pitches_per_step = 3 # @param {type:"slider", min:1, max:16, step:1}
 number_of_memory_tokens = 4096 # @param {type:"slider", min:32, max:8188, step:16}
 temperature = 0.9 # @param {type:"slider", min:0.1, max:1, step:0.05}
