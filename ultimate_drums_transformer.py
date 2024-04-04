@@ -536,7 +536,10 @@ if generate_from == 'Beginning':
 
 else:
 
-  pidx = sum([1 for o in output if o < 128])
+  if output:
+    pidx = sum([1 for o in output if o < 128])
+  else:
+    pidx = 0
 
   if pidx > 0 and pidx < len(comp_times[:number_of_chords_to_generate_drums_for]):
 
