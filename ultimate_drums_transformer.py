@@ -499,6 +499,8 @@ def generate_drums(input_seq,
 
 comp_times = [t[1] for t in dscore if t[1] != 0]
 
+comp_times = comp_times + [comp_times[-1]]
+
 if generate_from == 'Beginning':
 
   print('Generating drums track...')
