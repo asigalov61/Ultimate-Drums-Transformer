@@ -28,7 +28,7 @@
 
 ***
 
-### Version with lookahead and velocity but without rests
+### [GOOD] Version with lookahead and velocity but without rests
 
 [![Open In Colab][colab-badge]][colab-notebook5]
 
