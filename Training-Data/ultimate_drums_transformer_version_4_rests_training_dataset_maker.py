@@ -186,17 +186,18 @@ def TMIDIX_MIDI_Processor(midi_file):
 
               npe = nd
 
-              ndtime = abs_time - ntime
+              ndtime = max(0, min(127, (abs_time - ntime)))
 
               if 9 in dchans and len(dchans) > 1:
                     drums = True
 
               if drums:
-                  dt_score_notes_vel.extend([max(0, min(127, ndtime))])
+                if chans != [9]:
+                  dt_score_notes_vel.extend([ndtime])
 
-              ntime = abs_time
+                  ntime = abs_time
 
-              pe = pabs_time
+                  pe = pabs_time
 
               if 9 in dchans:
 
@@ -215,10 +216,11 @@ def TMIDIX_MIDI_Processor(midi_file):
                       velocity = max(8, min(127, e[5]))
                       vel = round(velocity / 15)
 
-                      if cdtime != 0:
-                        dt_score_notes_vel.extend([cdtime+128, ptc+256, vel+384])
-                      else:
-                        dt_score_notes_vel.extend([ptc+256, vel+384])
+                      if (abs_time - ntime) < 128:
+                        if cdtime != 0:
+                          dt_score_notes_vel.extend([cdtime+128, ptc+256, vel+384])
+                        else:
+                          dt_score_notes_vel.extend([ptc+256, vel+384])
 
                       pe = pabs_time
 
