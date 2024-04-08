@@ -28,7 +28,7 @@
 
 ***
 
-### Lookahead rests velocity version
+### Lookahead tones rests velocity version
 
 [![Open In Colab][colab-badge]][colab-notebook6]
 
