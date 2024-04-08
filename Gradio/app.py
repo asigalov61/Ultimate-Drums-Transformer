@@ -39,7 +39,7 @@ def GenerateDrums(input_midi, input_num_tokens):
     model = TransformerWrapper(
         num_tokens = PAD_IDX+1,
         max_seq_len = SEQ_LEN,
-        attn_layers = Decoder(dim = 1024, depth = 8, heads = 16, attn_flash = True)
+        attn_layers = Decoder(dim = 1024, depth = 4, heads = 16, attn_flash = True)
         )
     
     model = AutoregressiveWrapper(model, ignore_index = PAD_IDX)
@@ -50,7 +50,7 @@ def GenerateDrums(input_midi, input_num_tokens):
     print('Loading model checkpoint...')
 
     model.load_state_dict(
-        torch.load('Ultimate_Drums_Transformer_Small_Trained_Model_VER4_RST_VEL_8L_13501_steps_0.3341_loss_0.8893_acc.pth',
+        torch.load('Ultimate_Drums_Transformer_Small_Trained_Model_VER4_RST_VEL_4L_9107_steps_0.5467_loss_0.8231_acc.pth',
                    map_location=DEVICE))
     print('=' * 70)
 
@@ -94,17 +94,19 @@ def GenerateDrums(input_midi, input_num_tokens):
     
     escore_notes = [e for e in escore_notes if e[3] != 9]
     
-    escore_notes = TMIDIX.augment_enhanced_score_notes(escore_notes)
+    escore_notes = TMIDIX.augment_enhanced_score_notes(escore_notes, timings_divider=32)
     
     patches = TMIDIX.patch_list_from_enhanced_score_notes(escore_notes)
     
-    dscore = TMIDIX.delta_score_notes(escore_notes, compress_timings=True, even_timings=True)
+    dscore = TMIDIX.delta_score_notes(escore_notes)
     
     cscore = TMIDIX.chordify_score([d[1:] for d in dscore])
     
     cscore_melody = [c[0] for c in cscore]
     
     comp_times = [t[1] for t in dscore if t[1] != 0]
+
+    comp_times = comp_times + [comp_times[-1]]
 
     #===============================================================================
 
@@ -117,7 +119,7 @@ def GenerateDrums(input_midi, input_num_tokens):
     output = []
 
     temperature=0.9
-    max_drums_limit=4
+    max_drums_limit=3
     num_memory_tokens=4096
 
     for c in comp_times[:input_num_tokens]:
@@ -203,17 +205,15 @@ def GenerateDrums(input_midi, input_num_tokens):
     
                 dtime += (ss-128) * 32
     
-            if 256 <= ss < 384:
+            if 256 < ss < 384:
     
                 pitch = (ss-256)
     
-            if 384 <= ss < 393:
+            if 384 < ss < 393:
 
-                if pitch != 0:
+                vel = (ss-384) * 15
     
-                    vel = (ss-384) * 15
-        
-                    song_f.append(['note', dtime, dur, 9, pitch, vel, 128])
+                song_f.append(['note', dtime, dur, 9, pitch, vel, 128])
     
     detailed_stats = TMIDIX.Tegridy_ms_SONG_to_MIDI_Converter(song_f,
                                                               output_signature = 'Ultimate Drums Transformer',
