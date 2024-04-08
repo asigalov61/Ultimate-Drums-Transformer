@@ -17,7 +17,7 @@
 
 ***
 
-### [BEST] Version with lookahead, velocity and rests
+### [BEST] [FEATURES] Version with lookahead, velocity and rests
 
 [![Open In Colab][colab-badge]][colab-notebook6]
 
@@ -25,6 +25,17 @@
 [colab-badge]: <https://colab.research.google.com/assets/colab-badge.svg>
 
 #### In this version model decides itself for which time-step of the composition to generate drums pitches
+
+***
+
+### [BEST] [PERFORMANCE] Version with lookahead, velocity and rests
+
+[![Open In Colab][colab-badge]][colab-notebook8]
+
+[colab-notebook8]: <https://colab.research.google.com/github/asigalov61/Ultimate-Drums-Transformer/blob/main/Ultimate_Drums_Transformer_Rests_No_Velocity.ipynb>
+[colab-badge]: <https://colab.research.google.com/assets/colab-badge.svg>
+
+#### In this version model decides itself for which time-step of the composition to generate drums pitches but there is no velocity
 
 ***
 
