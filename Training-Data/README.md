@@ -24,7 +24,18 @@
 [colab-notebook4]: <https://colab.research.google.com/github/asigalov61/Ultimate-Drums-Transformer/blob/main/Training-Data/Ultimate_Drums_Transformer_Version_4_Training_Dataset_Maker.ipynb>
 [colab-badge]: <https://colab.research.google.com/assets/colab-badge.svg>
 
-#### This is the version that creates lookahead training dataset with velocity
+#### This is the version that creates lookahead training dataset with velocity but without rests
+
+***
+
+### Lookahead rests velocity version
+
+[![Open In Colab][colab-badge]][colab-notebook6]
+
+[colab-notebook6]: <https://colab.research.google.com/github/asigalov61/Ultimate-Drums-Transformer/blob/main/Training-Data/Ultimate_Drums_Transformer_Version_4_Tones_Rests_Training_Dataset_Maker.ipynb>
+[colab-badge]: <https://colab.research.google.com/assets/colab-badge.svg>
+
+#### This is the version that creates dual lookahead training dataset with rests and velocity
 
 ***
 
