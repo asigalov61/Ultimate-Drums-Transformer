@@ -17,6 +17,17 @@
 
 ***
 
+### Lookahead rests no velocity version
+
+[![Open In Colab][colab-badge]][colab-notebook7]
+
+[colab-notebook7]: <https://colab.research.google.com/github/asigalov61/Ultimate-Drums-Transformer/blob/main/Training-Data/Ultimate_Drums_Transformer_Version_4_Rests_No_Velocity_Training_Dataset_Maker.ipynb>
+[colab-badge]: <https://colab.research.google.com/assets/colab-badge.svg>
+
+#### This is the version that creates lookahead training dataset with rests but without velocity
+
+***
+
 ### Lookahead velocity version
 
 [![Open In Colab][colab-badge]][colab-notebook4]
