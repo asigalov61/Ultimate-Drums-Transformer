@@ -93,7 +93,7 @@ print('=' * 70)
 
 #@markdown Models selection
 
-select_model = "109M-8L-Small-Fast" # @param ["59M-4L-Small-Very-Fast", "109M-8L-Small-Fast"]
+select_model = "59M-4L-Small-Very-Fast" # @param ["59M-4L-Small-Very-Fast", "109M-8L-Small-Fast"]
 
 #@markdown Model precision option
 
@@ -116,7 +116,7 @@ if select_model == '59M-4L-Small-Very-Fast':
 
   depth = 4
 
-  model_checkpoint_file_name = 'Ultimate_Drums_Transformer_Small_Trained_Model_VER4_RST_VEL_4L_16534_steps_0.4074_loss_0.8631_acc.pth'
+  model_checkpoint_file_name = 'Ultimate_Drums_Transformer_Small_Trained_Model_VER4_RST_VEL_4L_9107_steps_0.5467_loss_0.8231_acc.pth'
   model_path = full_path_to_models_dir+'/Small_V4_RST_VEL/'+model_checkpoint_file_name
   if os.path.isfile(model_path):
     print('Model already exists...')
@@ -131,7 +131,7 @@ else:
 
   depth = 8
 
-  model_checkpoint_file_name = 'Ultimate_Drums_Transformer_Small_Trained_Model_VER4_RST_VEL_8L_13501_steps_0.3341_loss_0.8893_acc.pth'
+  model_checkpoint_file_name = 'Ultimate_Drums_Transformer_Small_Trained_Model_VER4_RST_VEL_8L_12501_steps_0.4947_loss_0.8382_acc.pth'
 
   model_path = full_path_to_models_dir+'/Small_V4_RST_VEL/'+model_checkpoint_file_name
   if os.path.isfile(model_path):
@@ -231,7 +231,7 @@ print('=' * 70)
 print('Ultimate Drums Transformer Standard Improv Model Generator')
 print('=' * 70)
 
-outy = [random.randint(1, 32)]
+outy = [random.randint(4, 16)]
 
 print('Selected Improv sequence:')
 print(outy)
@@ -280,6 +280,7 @@ for i in range(number_of_batches_to_generate):
 
       time = 0
       dtime = 0
+      ptime = 0
       dur = 128
       vel = 90
       pitch = 0
@@ -292,11 +293,9 @@ for i in range(number_of_batches_to_generate):
 
           if 0 < ss < 128:
 
-              ptime = time
+              dtime = ptime = time
 
               time += ss * 32
-
-              dtime = ptime
 
               song_f.append(['note', ptime, dur, 0, random.choice([60, 62, 64]), vel, melody_MIDI_patch_number])
 
@@ -389,21 +388,24 @@ if f != '':
 
   escore_notes = [e for e in escore_notes if e[3] != 9]
 
-  escore_notes = TMIDIX.augment_enhanced_score_notes(escore_notes)
+  escore_notes = TMIDIX.augment_enhanced_score_notes(escore_notes, timings_divider=32)
 
   patches = TMIDIX.patch_list_from_enhanced_score_notes(escore_notes)
 
-  dscore = TMIDIX.delta_score_notes(escore_notes, compress_timings=True, even_timings=True)
+  dscore = TMIDIX.delta_score_notes(escore_notes)
 
   cscore = TMIDIX.chordify_score([d[1:] for d in dscore])
+
+  output = []
 
   #=======================================================
 
   song_f = escore_notes
 
   for s in song_f:
-    s[1] *= 16
-    s[2] *= 16
+
+    s[1] *= 32
+    s[2] *= 32
 
   time = 0
   dur = 0
@@ -606,11 +608,9 @@ if len(output) != 0:
 
         if 0 < ss < 128:
 
-            ptime = time
+            dtime = time
 
             time += ss * 32
-
-            dtime = ptime
 
         if 128 <= ss < 256:
 
