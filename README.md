@@ -46,7 +46,7 @@
 [colab-notebook7]: <https://colab.research.google.com/github/asigalov61/Ultimate-Drums-Transformer/blob/main/Ultimate_Drums_Transformer_Tones_Rests_Velocity.ipynb>
 [colab-badge]: <https://colab.research.google.com/assets/colab-badge.svg>
 
-#### In this version model model decides itself for which time-step and melody tone to generate drums pitches
+#### In this version model model decides itself for which time-step and melody tones to generate drums pitches
 
 ***
 
