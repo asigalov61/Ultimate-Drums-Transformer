@@ -342,7 +342,10 @@ for i in range(number_of_batches_to_generate):
 #@markdown Press play button to to upload your own seed MIDI or to load one of the provided sample seed MIDIs from the dropdown list below
 
 select_seed_MIDI = "Upload your own custom MIDI" # @param ["Upload your own custom MIDI", "Ultimate-Drums-Transformer-Melody-Seed-1", "Ultimate-Drums-Transformer-Melody-Seed-2", "Ultimate-Drums-Transformer-Melody-Seed-3", "Ultimate-Drums-Transformer-Melody-Seed-4", "Ultimate-Drums-Transformer-Melody-Seed-5", "Ultimate-Drums-Transformer-Melody-Seed-6", "Ultimate-Drums-Transformer-MI-Seed-1", "Ultimate-Drums-Transformer-MI-Seed-2", "Ultimate-Drums-Transformer-MI-Seed-3", "Ultimate-Drums-Transformer-MI-Seed-4"]
+number_of_prime_drums_chords = 0 # @param {type:"slider", min:0, max:1024, step:4}
 render_MIDI_to_audio = False # @param {type:"boolean"}
+
+#===============================================================================
 
 print('=' * 70)
 print('Ultimate Drums Transformer Seed MIDI Loader')
@@ -361,34 +364,29 @@ else:
   if list(uploaded_MIDI.keys()):
     f = list(uploaded_MIDI.keys())[0]
 
+#===============================================================================
+
 if f != '':
 
   print('=' * 70)
   print('File:', f)
   print('=' * 70)
 
-  #=======================================================
+  #=============================================================================
   # START PROCESSING
-
-  #===============================================================================
-  # Raw single-track ms score
+  #=============================================================================
 
   raw_score = TMIDIX.midi2single_track_ms_score(f)
 
-  #===============================================================================
-  # Enhanced score notes
-
-  escore_notes = TMIDIX.advanced_score_processor(raw_score, return_enhanced_score_notes=True)[0]
-
-  #=======================================================
-  # PRE-PROCESSING
-
-  #===============================================================================
-  # Augmented enhanced score notes
+  escore_notes = TMIDIX.advanced_score_processor(raw_score,
+                                                 return_enhanced_score_notes=True
+                                                 )[0]
 
   escore_notes = [e for e in escore_notes if e[3] != 9]
 
-  escore_notes = TMIDIX.augment_enhanced_score_notes(escore_notes, timings_divider=32)
+  escore_notes = TMIDIX.augment_enhanced_score_notes(escore_notes,
+                                                     timings_divider=32
+                                                     )
 
   patches = TMIDIX.patch_list_from_enhanced_score_notes(escore_notes)
 
@@ -398,21 +396,146 @@ if f != '':
 
   output = []
 
-  #=======================================================
+  #=============================================================================
+  # Drums continuation
+  #=============================================================================
 
-  song_f = escore_notes
+  escore_notes1 = []
+  dt_score_notes_vel = []
+  dcscore1 = []
+  cont_score = []
 
-  for s in song_f:
+  if number_of_prime_drums_chords > 0:
 
-    s[1] *= 32
-    s[2] *= 32
+    escore_notes1 = TMIDIX.advanced_score_processor(raw_score,
+                                              return_enhanced_score_notes=True
+                                              )[0]
 
-  time = 0
-  dur = 0
-  vel = 90
-  pitch = 0
-  channel = 0
+    escore_notes1 = TMIDIX.augment_enhanced_score_notes(escore_notes1,
+                                                        timings_divider=32
+                                                        )
 
+    # checking number of instruments in a composition
+    instruments_list = list(set([y[3] for y in escore_notes1]))
+
+    if len(escore_notes1) > 0 and (9 in instruments_list):
+
+        #=======================================================================
+
+        dcscore1 = TMIDIX.chordify_score([1000, escore_notes1])
+
+        #=======================================================================
+
+
+
+        npe = dcscore1[0]
+        npe.sort(key=lambda x: x[4])
+
+        pe = 0
+
+        ntime = 0
+        pabs_time = 0
+
+        abs_time = 0
+
+        drums = True
+
+        dccount = 0
+
+        for i, d in enumerate(dcscore1[:-1]):
+          d.sort(key=lambda x: x[4])
+          dchans = sorted(set([x[3] for x in d]))
+
+          nd = dcscore1[i+1]
+          chans = sorted(set([x[3] for x in nd]))
+
+          time = nd[0][1] - npe[0][1]
+
+          dtime = max(0, min(127, time))
+
+          pabs_time = abs_time
+
+          abs_time += dtime
+
+          npe = nd
+
+          ndtime = max(0, min(127, (abs_time - ntime)))
+
+          if 9 in dchans and len(dchans) > 1:
+                drums = True
+
+          if drums:
+            if chans != [9]:
+              dt_score_notes_vel.extend([ndtime])
+
+              ntime = abs_time
+
+              pe = pabs_time
+
+          if 9 in dchans:
+
+              for e in d:
+
+                cha = e[3]
+
+                if cha == 9:
+
+                  cdtime = pabs_time - pe
+
+                  cdtime = max(0, min(127, int(cdtime)))
+
+                  ptc = max(1, min(127, e[4]))
+
+                  velocity = max(8, min(127, e[5]))
+                  vel = round(velocity / 15)
+
+                  if (abs_time - ntime) < 128:
+                    if cdtime != 0:
+                      dt_score_notes_vel.extend([cdtime+128, ptc+256, vel+384])
+                    else:
+                      dt_score_notes_vel.extend([ptc+256, vel+384])
+
+                  pe = pabs_time
+
+              dccount += 1
+
+          if 9 not in dchans and drums:
+              dt_score_notes_vel.extend([0+256, 0+384])
+
+          if dccount == number_of_prime_drums_chords:
+            cont_score = dcscore1[:i]
+            break
+
+  #=============================================================================
+
+  if number_of_prime_drums_chords == 0 and not dt_score_notes_vel:
+
+    song_f = escore_notes
+
+    for s in song_f:
+
+      s[1] *= 32
+      s[2] *= 32
+
+  elif number_of_prime_drums_chords > 0 and dt_score_notes_vel:
+
+    time = 0
+    dur = 0
+    vel = 90
+    pitch = 0
+    channel = 0
+
+    song_f = []
+
+    for cs in cont_score:
+
+      time = cs[0][1] * 32
+
+      for c in cs:
+
+        dur = c[2] * 32
+
+        song_f.append(['note', time, dur, c[3], c[4], c[5], c[6]])
 
   detailed_stats = TMIDIX.Tegridy_ms_SONG_to_MIDI_Converter(song_f,
                                                             output_signature = 'Ultimate Drums Transformer',
@@ -420,13 +543,16 @@ if f != '':
                                                             track_name='Project Los Angeles',
                                                             list_of_MIDI_patches=patches
                                                             )
-  #=======================================================
+
+  #=============================================================================
 
   print('=' * 70)
   print('Composition stats:')
   print('Composition has', len(cscore), 'chords')
   print('Composition MIDI patches:', sorted(set(patches)))
   print('=' * 70)
+
+  #=============================================================================
 
   print('Displaying resulting composition...')
   print('=' * 70)
@@ -447,9 +573,9 @@ else:
 #@markdown NOTE: You can stop the generation at any time to render partial results
 
 #@markdown Generation settings
-generate_from = "Beginning" # @param ["Beginning", "Last Position"]
+generate_from = "Beginning" # @param ["Beginning", "Last Position", "Prime Drums Chords"]
 number_of_chords_to_generate_drums_for = 128 # @param {type:"slider", min:4, max:8192, step:4}
-start_chord_number = 0 # @param {type:"slider", min:0, max:8192, step:4}
+start_chord_number = 0 # @param {type:"slider", min:0, max:1024, step:4}
 max_number_of_drums_pitches_per_step = 3 # @param {type:"slider", min:1, max:16, step:1}
 number_of_memory_tokens = 4096 # @param {type:"slider", min:32, max:8188, step:16}
 temperature = 0.9 # @param {type:"slider", min:0.1, max:1, step:0.05}
@@ -539,7 +665,61 @@ if generate_from == 'Beginning':
 
   torch.cuda.empty_cache()
 
-else:
+#===============================================================================
+
+elif generate_from == 'Last Position':
+
+  if output:
+    tidxs = [i for i in range(len(output)) if output[i] < 128]
+
+    if 0 < start_chord_number < len(tidxs):
+      output = output[:tidxs[start_chord_number]]
+
+  if output:
+    pidx = sum([1 for o in output if o < 128])
+  else:
+    pidx = 0
+
+  if pidx > 0 and pidx < len(comp_times[:number_of_chords_to_generate_drums_for]):
+
+    #===============================================================================
+
+    print('Continuing generating drums track...')
+    print('=' * 70)
+
+    torch.cuda.empty_cache()
+
+    for c in tqdm.tqdm(comp_times[pidx:number_of_chords_to_generate_drums_for]):
+
+      try:
+        output.append(c)
+
+        out = generate_drums(output,
+                            temperature=temperature,
+                            max_drums_limit=max_number_of_drums_pitches_per_step,
+                            num_memory_tokens=number_of_memory_tokens
+                            )
+        output.extend(out)
+
+      except KeyboardInterrupt:
+        print('=' * 70)
+        print('Stopping generation...')
+        break
+
+      except:
+        break
+
+    torch.cuda.empty_cache()
+
+  else:
+    print('Nothing to continue!')
+    print('Please start from the begining...')
+
+#===============================================================================
+
+elif generate_from == 'Prime Drums Chords':
+
+  output = copy.deepcopy(dt_score_notes_vel)
 
   if output:
     tidxs = [i for i in range(len(output)) if output[i] < 128]
@@ -637,45 +817,49 @@ if len(output) != 0:
 
               song_f.append(['note', dtime, dur, 9, pitch, vel, 128])
 
-#===============================================================================
+    #===============================================================================
 
-original_score = []
-time = 0
+    original_score = []
+    time = 0
 
-pidx = sum([1 for o in output if o < 128])
+    pidx = sum([1 for o in output if o < 128])
 
-for c in cscore[:pidx+1]:
-  for cc in c:
-    time += cc[0] * 32
-    dur = cc[1] * 32
-    original_note = ['note'] + copy.deepcopy(cc)
-    original_note[1] = time
-    original_note[2] = dur
-    original_score.append(original_note)
+    for c in cscore[:pidx+1]:
+      for cc in c:
+        time += cc[0] * 32
+        dur = cc[1] * 32
+        original_note = ['note'] + copy.deepcopy(cc)
+        original_note[1] = time
+        original_note[2] = dur
+        original_score.append(original_note)
 
-song_f = sorted(original_score + song_f, key=lambda x: x[1])
+    song_f = sorted(original_score + song_f, key=lambda x: x[1])
 
-#===============================================================================
+    #===============================================================================
 
-detailed_stats = TMIDIX.Tegridy_ms_SONG_to_MIDI_Converter(song_f,
-                                                          output_signature = 'Ultimate Drums Transformer',
-                                                          output_file_name = '/content/Ultimate-Drums-Transformer-Composition',
-                                                          track_name='Project Los Angeles',
-                                                          list_of_MIDI_patches=patches
-                                                          )
+    detailed_stats = TMIDIX.Tegridy_ms_SONG_to_MIDI_Converter(song_f,
+                                                              output_signature = 'Ultimate Drums Transformer',
+                                                              output_file_name = '/content/Ultimate-Drums-Transformer-Composition',
+                                                              track_name='Project Los Angeles',
+                                                              list_of_MIDI_patches=patches
+                                                              )
 
-#=========================================================================
+    #=========================================================================
 
-print('=' * 70)
-print('Displaying resulting composition...')
-print('=' * 70)
+    print('=' * 70)
+    print('Displaying resulting composition...')
+    print('=' * 70)
 
-fname = '/content/Ultimate-Drums-Transformer-Composition'
+    fname = '/content/Ultimate-Drums-Transformer-Composition'
 
-if render_MIDI_to_audio:
-  midi_audio = midi_to_colab_audio(fname + '.mid')
-  display(Audio(midi_audio, rate=16000, normalize=False))
+    if render_MIDI_to_audio:
+      midi_audio = midi_to_colab_audio(fname + '.mid')
+      display(Audio(midi_audio, rate=16000, normalize=False))
 
-TMIDIX.plot_ms_SONG(song_f, plot_title=fname)
+    TMIDIX.plot_ms_SONG(song_f, plot_title=fname)
+
+else:
+  print('Try again :)')
+  print('=' * 70)
 
 """# Congrats! You did it! :)"""
