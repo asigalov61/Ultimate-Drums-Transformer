@@ -195,7 +195,7 @@ if plot_tokens_embeddings:
 #@markdown Generation settings
 
 melody_MIDI_patch_number = 0 # @param {type:"slider", min:0, max:127, step:1}
-number_of_tokens_tp_generate = 258 # @param {type:"slider", min:30, max:8190, step:3}
+number_of_tokens_to_generate = 258 # @param {type:"slider", min:30, max:8190, step:3}
 number_of_batches_to_generate = 4 #@param {type:"slider", min:1, max:16, step:1}
 temperature = 0.9 # @param {type:"slider", min:0.1, max:1, step:0.05}
 
@@ -221,7 +221,7 @@ inp = torch.LongTensor(inp).cuda()
 
 with ctx:
   out = model.generate(inp,
-                        number_of_tokens_tp_generate,
+                        number_of_tokens_to_generate,
                         temperature=temperature,
                         return_prime=True,
                         verbose=True)
@@ -371,6 +371,8 @@ if f != '':
 
   cscore = TMIDIX.chordify_score([d[1:] for d in dscore])
 
+  output = []
+
   #=======================================================
 
   song_f = escore_notes
@@ -416,9 +418,12 @@ else:
 
 #@title Drums track generation
 
+#@markdown NOTE: You can stop the generation at any time to render partial results
+
 #@markdown Generation settings
 generate_from = "Beginning" # @param ["Beginning", "Last Position"]
-number_of_chords_to_generate_drums_for = 64 # @param {type:"slider", min:4, max:8192, step:4}
+number_of_chords_to_generate_drums_for = 128 # @param {type:"slider", min:4, max:8192, step:4}
+start_chord_number = 0 # @param {type:"slider", min:0, max:8192, step:4}
 drums_generation_step_in_chords = 2 # @param {type:"slider", min:1, max:4, step:1}
 max_number_of_drums_pitches_per_step = 3 # @param {type:"slider", min:1, max:16, step:1}
 number_of_memory_tokens = 4096 # @param {type:"slider", min:32, max:8188, step:16}
@@ -514,6 +519,12 @@ if generate_from == 'Beginning':
   torch.cuda.empty_cache()
 
 else:
+
+  if output:
+    tidxs = [i for i in range(len(output)) if output[i] < 128]
+
+    if 0 < start_chord_number < len(tidxs):
+      output = output[:tidxs[start_chord_number]]
 
   pidx = sum([1 for o in output if o < 128])
 
